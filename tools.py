@@ -58,5 +58,5 @@ def isBlankPage(currentPage):
     reader = PdfReader(pdfPath)
     page = reader.pages(currentPage)
     if page.extract_text().find("BlANK PAGE") == -1:
-        return True
-    return False
+        return False
+    return True
