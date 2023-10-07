@@ -1,0 +1,72 @@
+from gpiozero import Motor
+import threading
+import paramiko
+
+# Define motor pins
+top_left = Motor(forward=4, backward=22)
+top_right = Motor(forward=17, backward=23)
+bottom_left = Motor(forward=5, backward=6)
+bottom_right = Motor(forward=26, backward=16)
+
+# Initialize a list to store the keys currently being pressed
+keys_pressed = []
+
+def process_keys():
+    # Check the keys being pressed and control motors accordingly
+    if 'w' in keys_pressed:
+        top_left.forward()
+        top_right.forward()
+        bottom_left.forward()
+        bottom_right.forward()
+    elif 'a' in keys_pressed:
+        top_right.forward()
+        bottom_left.forward()
+        bottom_right.forward()
+    elif 'd' in keys_pressed:
+        top_left.forward()
+        bottom_left.forward()
+        bottom_right.forward()
+    else:
+        # Stop all motors if no keys are pressed
+        top_left.stop()
+        top_right.stop()
+        bottom_left.stop()
+        bottom_right.stop()
+
+# Create a separate thread for motor control
+motor_thread = threading.Thread(target=process_keys)
+
+def start_motor_thread():
+    # Start the motor control thread
+    motor_thread.start()
+
+# Start the motor control thread
+start_motor_thread()
+
+# SSH server setup
+ssh_server = paramiko.Transport(('0.0.0.0', 22))
+ssh_server.add_server_key(paramiko.RSAKey.generate(2048))
+ssh_server.set_subsystem_handler('sftp', paramiko.SFTPServer)
+
+# Start the SSH server
+ssh_server.start_server()
+
+# Accept SSH connections and run the script
+while True:
+    channel, _, _, _ = ssh_server.accept(20)
+    if channel is None:
+        continue
+
+    command = channel.recv(1024).decode('utf-8').strip()
+    if command == 'start_motor_thread':
+        start_motor_thread()
+        channel.send('Motor control thread started.\n')
+    elif command == 'exit':
+        channel.send('Goodbye!\n')
+        channel.close()
+        break
+    else:
+        channel.send('Invalid command.\n')
+
+# Wait for the motor control thread to finish
+motor_thread.join()
