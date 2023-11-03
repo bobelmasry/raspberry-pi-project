@@ -30,6 +30,13 @@ while True:
         top_left.forward()
         bottom_left.forward()
         bottom_right.forward()
+        
+    elif command == 's':
+        top_left.backward()
+        top_right.backward()
+        bottom_left.backward()
+        bottom_right.backward()
+        
     elif command == 'q':
         # Stop all motors and exit the loop
         stop_motors()
