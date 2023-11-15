@@ -27,6 +27,7 @@ sudo rosdep init
 rosdep update
 
 echo "installing realsense sdk"
+cd 
 git clone https://github.com/IntelRealSense/librealsense.git
 cd ~/librealsense/
 
